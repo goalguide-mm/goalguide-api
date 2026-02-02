@@ -1,19 +1,18 @@
-const express = require("express");
-const cors = require("cors");
+import express from "express";
+import cors from "cors";
 
 const app = express();
-app.use(cors({ origin: "*" }));
+app.use(cors());
+
+app.get("/", (req, res) => {
+  res.send("GoalGuide API is running ✅");
+});
+
+app.get("/api/live", (req, res) => {
+  res.json({ status: "live matches here" });
+});
 
 const PORT = process.env.PORT || 3000;
-
-app.get("/api/live", async (req, res) => {
-  res.json({ ok: true, msg: "live works" });
-});
-
-app.get("/api/fixtures", async (req, res) => {
-  res.json({ ok: true, msg: "fixtures works" });
-});
-
 app.listen(PORT, () => {
-  console.log("Server running on " + PORT);
+  console.log("Server running on port", PORT);
 });

@@ -1,5 +1,8 @@
 const express = require("express");
+const cors = require("cors");   // ✅ ဒီလိုထည့်
 const app = express();
+
+app.use(cors());                // ✅ ဒီလိုထည့်
 
 // test route
 app.get("/", (req, res) => {
@@ -26,7 +29,7 @@ app.get("/api/fixtures", (req, res) => {
   ]);
 });
 
-// ⭐ Render အတွက် အရေးကြီးဆုံး
+// Render port
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Server running on port", PORT);

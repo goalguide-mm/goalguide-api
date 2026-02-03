@@ -9,12 +9,42 @@ app.get("/", (req, res) => {
   res.send("GoalGuide API is running ✅");
 });
 
-app.get("/api/live", (req, res) => {
-  res.json([]); // live matches
+/* ======================
+   LIVE MATCHES
+====================== */
+app.get("/api/live", async (req, res) => {
+  try {
+    const API_KEY = process.env.FOOTBALL_API_KEY;
+
+    const url = `https://apiv2.allsportsapi.com/football/?met=Livescore&APIkey=${API_KEY}`;
+
+    const r = await fetch(url);
+    const json = await r.json();
+
+    res.json(json.result || []);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json([]);
+  }
 });
 
-app.get("/api/fixtures", (req, res) => {
-  res.json([]); // fixtures
+/* ======================
+   FIXTURES
+====================== */
+app.get("/api/fixtures", async (req, res) => {
+  try {
+    const API_KEY = process.env.FOOTBALL_API_KEY;
+
+    const url = `https://apiv2.allsportsapi.com/football/?met=Fixtures&APIkey=${API_KEY}`;
+
+    const r = await fetch(url);
+    const json = await r.json();
+
+    res.json(json.result || []);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json([]);
+  }
 });
 
 const PORT = process.env.PORT || 3000;

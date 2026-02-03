@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 import express from "express";
 import cors from "cors";
 
@@ -6,39 +5,49 @@ const app = express();
 app.use(cors());
 
 const API_KEY = process.env.FOOTBALL_API_KEY;
-const API_URL = "https://v3.football.api-sports.io";
 
+// test route
 app.get("/", (req, res) => {
   res.send("GoalGuide API is running ✅");
 });
 
+// LIVE MATCHES
 app.get("/api/live", async (req, res) => {
   try {
-    const r = await fetch(`${API_URL}/fixtures?live=all`, {
+    const r = await fetch("https://v3.football.api-sports.io/fixtures?live=all", {
       headers: {
         "x-apisports-key": API_KEY
       }
     });
     const data = await r.json();
     res.json(data.response || []);
-  } catch (e) {
-    res.status(500).json({ error: "Live fetch failed" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
+// FIXTURES (today)
 app.get("/api/fixtures", async (req, res) => {
   try {
-    const r = await fetch(`${API_URL}/fixtures?next=20`, {
-      headers: {
-        "x-apisports-key": API_KEY
+    const today = new Date().toISOString().slice(0, 10);
+
+    const r = await fetch(
+      `https://v3.football.api-sports.io/fixtures?date=${today}`,
+      {
+        headers: {
+          "x-apisports-key": API_KEY
+        }
       }
-    });
+    );
+
     const data = await r.json();
     res.json(data.response || []);
-  } catch (e) {
-    res.status(500).json({ error: "Fixtures fetch failed" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running on", PORT));
+app.listen(PORT, () => {
+  console.log("Server running on port", PORT);
+});

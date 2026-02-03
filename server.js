@@ -9,7 +9,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/live", (req, res) => {
-  res.json({ status: "live matches here" });
+  res.json([]); // empty array
 });
 
 const PORT = process.env.PORT || 3000;

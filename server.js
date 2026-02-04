@@ -15,6 +15,9 @@ app.use(express.json());
 // =====================
 app.use(express.static(path.join(__dirname, "goalguide-app")));
 
+// =====================
+// ROOT → index.html
+// =====================
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "goalguide-app", "index.html"));
 });
@@ -48,9 +51,9 @@ app.get("/api/fixtures", (req, res) => {
       home: "Arsenal",
       away: "Chelsea",
       status: "LIVE",
-      minute: 54,
       homeScore: 2,
-      awayScore: 1
+      awayScore: 1,
+      day: 0
     }
   ]);
 });
@@ -65,7 +68,6 @@ app.get("/api/match/:id", (req, res) => {
     home: "Arsenal",
     away: "Chelsea",
     status: "LIVE",
-    minute: 72,
     homeScore: 2,
     awayScore: 1
   });
@@ -74,7 +76,7 @@ app.get("/api/match/:id", (req, res) => {
 // =====================
 // START SERVER
 // =====================
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("✅ Server running on http://localhost:" + PORT);
+  console.log(`✅ Server running on http://localhost:${PORT}`);
 });

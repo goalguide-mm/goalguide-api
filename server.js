@@ -10,21 +10,28 @@ app.get("/", (req, res) => {
 });
 
 // fixtures API
-app.get("/api/fixtures", (req, res) => {
+// live matches API
+app.get("/api/live", (req, res) => {
   res.json([
     {
-      id: 1,
+      id: 101,
       home: "Liverpool",
-      away: "Chelsea",
-      date: "2026-02-06",
-      time: "20:00"
-    },
+      away: "Man United",
+      status: "LIVE",
+      minute: 67
+    }
+  ]);
+});
+
+// results API
+app.get("/api/results", (req, res) => {
+  res.json([
     {
-      id: 2,
-      home: "Man City",
-      away: "Arsenal",
-      date: "2026-02-06",
-      time: "22:30"
+      id: 201,
+      home: "Arsenal",
+      away: "Chelsea",
+      score: "2 - 1",
+      status: "FT"
     }
   ]);
 });

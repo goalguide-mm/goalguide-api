@@ -1,85 +1,35 @@
 const express = require("express");
-const cors = require("cors");
 const fetch = require("node-fetch");
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-// =====================
-// CONFIG
-// =====================
-const API_KEY = process.env.API_KEY || "YOUR_API_KEY_HERE";
-const API_BASE = "https://v3.football.api-sports.io";
-
-// =====================
-// MIDDLEWARE
-// =====================
-app.use(cors());
-app.use(express.json());
-
-// =====================
-// ROOT (API STATUS)
-// =====================
+// ✅ Home route (ဒါမရှိလို့ Cannot GET / ဖြစ်နေတာ)
 app.get("/", (req, res) => {
-  res.json({
-    status: "OK",
-    message: "GOAL GUIDE API is running 🚀"
-  });
+  res.send("GoalGuide API is running 🚀");
 });
 
-// =====================
-// LIVE MATCHES
-// =====================
-app.get("/api/live", async (req, res) => {
-  try {
-    const r = await fetch(`${API_BASE}/fixtures?live=all`, {
-      headers: { "x-apisports-key": API_KEY }
-    });
-    const data = await r.json();
-    res.json(data.response);
-  } catch (e) {
-    res.status(500).json({ error: "Live API error" });
-  }
-});
-
-// =====================
-// FIXTURES BY DATE
-// /api/fixtures?date=2026-02-04
-// =====================
-app.get("/api/fixtures", async (req, res) => {
-  try {
-    const { date } = req.query;
-    const r = await fetch(`${API_BASE}/fixtures?date=${date}`, {
-      headers: { "x-apisports-key": API_KEY }
-    });
-    const data = await r.json();
-    res.json(data.response);
-  } catch (e) {
-    res.status(500).json({ error: "Fixtures API error" });
-  }
-});
-
-// =====================
-// MATCH DETAIL
-// =====================
+// ✅ Match route
 app.get("/api/match/:id", async (req, res) => {
+  const matchId = req.params.id;
+
   try {
-    const r = await fetch(
-      `${API_BASE}/fixtures?id=${req.params.id}`,
+    const response = await fetch(
+      `https://v3.football.api-sports.io/fixtures?id=${matchId}`,
       {
-        headers: { "x-apisports-key": API_KEY }
+        headers: {
+          "x-apisports-key": process.env.FOOTBALL_API_KEY,
+        },
       }
     );
-    const data = await r.json();
-    res.json(data.response[0]);
-  } catch (e) {
-    res.status(500).json({ error: "Match API error" });
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: "API fetch failed" });
   }
 });
 
-// =====================
-// START SERVER
-// =====================
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("✅ API running on port", PORT);
+  console.log(`Server running on port ${PORT}`);
 });

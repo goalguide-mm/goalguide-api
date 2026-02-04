@@ -9,9 +9,7 @@ app.get("/", (req, res) => {
   res.send("API is running");
 });
 
-// fixtures API
-// live matches API
-app.get("/api/live", (req, res) => {
+app.get("/api/fixtures", (req, res) => {
   res.json([
     {
       id: 101,

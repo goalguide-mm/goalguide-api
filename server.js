@@ -39,39 +39,40 @@ app.get("/api/live", (req, res) => {
 // FIXTURES (TODAY / TOMORROW)
 // =====================
 app.get("/api/fixtures", (req, res) => {
-  const day = Number(req.query.day); // 0 = today, 1 = tomorrow
-
   res.json([
     {
-      id: 12345,
+      id: 1,
       league: "Premier League",
-      leagueLogo:
-        "https://upload.wikimedia.org/wikipedia/en/f/f2/Premier_League_Logo.svg",
+      leagueLogo: "https://...",
       home: "Arsenal",
-      homeLogo:
-        "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg",
+      homeLogo: "https://...",
       away: "Chelsea",
-      awayLogo:
-        "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg",
-      status: day === 1 ? "NS" : "LIVE",
-      minute: day === 1 ? null : 54,
-      homeScore: day === 1 ? 0 : 2,
-      awayScore: day === 1 ? 0 : 1
-    }
-  ]);
-});
-
-// =====================
-// RESULTS
-// =====================
-app.get("/api/results", (req, res) => {
-  res.json([
+      awayLogo: "https://...",
+      status: "LIVE",
+      minute: 54,
+      homeScore: 2,
+      awayScore: 1,
+      day: 0
+    },
     {
-      id: 2001,
+      id: 2,
+      league: "Premier League",
+      home: "Liverpool",
+      away: "Man United",
+      status: "FT",
+      homeScore: 3,
+      awayScore: 1,
+      day: -1
+    },
+    {
+      id: 3,
       league: "Premier League",
       home: "Man City",
       away: "Spurs",
-      score: "3 - 1"
+      status: "NS",
+      homeScore: 0,
+      awayScore: 0,
+      day: 0
     }
   ]);
 });

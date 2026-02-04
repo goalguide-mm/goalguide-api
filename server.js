@@ -1,15 +1,19 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 // =====================
-// ROOT
+// FRONTEND (STATIC FILES)
 // =====================
+// index.html ရှိတဲ့ folder နာမည်
+app.use(express.static(path.join(__dirname, "goalguide-app")));
+
 app.get("/", (req, res) => {
-  res.send("GOAL GUIDE API is running ✅");
+  res.sendFile(path.join(__dirname, "goalguide-app", "index.html"));
 });
 
 // =====================
@@ -37,13 +41,10 @@ app.get("/api/live", (req, res) => {
 });
 
 // =====================
-// FIXTURES (today / yesterday / tomorrow)
-// ?day=0  => today
-// ?day=-1 => yesterday
-// ?day=1  => tomorrow
+// FIXTURES
 // =====================
 app.get("/api/fixtures", (req, res) => {
-  const day = Number(req.query.day); // 0, -1, 1
+  const day = Number(req.query.day);
 
   const matches = [
     {
@@ -95,23 +96,19 @@ app.get("/api/fixtures", (req, res) => {
     }
   ];
 
-  // day filter မထည့်ရင် အားလုံးပြ
   if (isNaN(day)) {
     return res.json(matches);
   }
 
-  const filtered = matches.filter(m => m.day === day);
-  res.json(filtered);
+  res.json(matches.filter(m => m.day === day));
 });
 
 // =====================
 // MATCH DETAIL
 // =====================
 app.get("/api/match/:id", (req, res) => {
-  const { id } = req.params;
-
   res.json({
-    id,
+    id: req.params.id,
     league: "Premier League",
     leagueLogo:
       "https://upload.wikimedia.org/wikipedia/en/f/f2/Premier_League_Logo.svg",
@@ -130,7 +127,7 @@ app.get("/api/match/:id", (req, res) => {
 });
 
 // =====================
-// 404 HANDLER
+// 404 HANDLER (API)
 // =====================
 app.use((req, res) => {
   res.status(404).json({ error: "API route not found" });
@@ -141,5 +138,5 @@ app.use((req, res) => {
 // =====================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("GOAL GUIDE API running on port", PORT);
+  console.log("GOAL GUIDE running on http://localhost:" + PORT);
 });

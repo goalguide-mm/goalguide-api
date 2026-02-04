@@ -4,56 +4,80 @@ const cors = require("cors");
 const app = express();
 app.use(cors());
 
-// test
+// =========================
+// TEST
+// =========================
 app.get("/", (req, res) => {
-  res.send("Goal Guide API running ✅");
+  res.send("Goal Guide API is running ✅");
 });
 
-// fixtures (today + live + tomorrow)
+// =========================
+// FIXTURES (Today / Tomorrow)
+// =========================
 app.get("/api/fixtures", (req, res) => {
   res.json({
-    live: [
-      {
-        id: 1,
-        home: "Liverpool",
-        away: "Man United",
-        minute: 67,
-        status: "LIVE"
-      }
-    ],
     today: [
       {
-        id: 2,
-        home: "Arsenal",
-        away: "Chelsea",
-        time: "22:30"
+        id: 1,
+        league: "Premier League",
+        home: "Liverpool",
+        away: "Man United",
+        time: "22:30",
+        status: "UPCOMING"
       }
     ],
     tomorrow: [
       {
-        id: 3,
-        home: "Real Madrid",
-        away: "Barcelona",
-        time: "01:00"
+        id: 2,
+        league: "La Liga",
+        home: "Barcelona",
+        away: "Real Madrid",
+        time: "01:00",
+        status: "UPCOMING"
       }
     ]
   });
 });
 
-// results (yesterday)
-app.get("/api/results", (req, res) => {
+// =========================
+// LIVE MATCHES
+// =========================
+app.get("/api/live", (req, res) => {
   res.json([
     {
-      id: 10,
-      home: "Bayern",
-      away: "Dortmund",
-      score: "3 - 1",
-      status: "FT"
+      id: 3,
+      league: "Serie A",
+      home: "Inter",
+      away: "AC Milan",
+      minute: 67,
+      score: "1 - 0",
+      status: "LIVE"
     }
   ]);
 });
 
-const PORT = 3000;
+// =========================
+// RESULTS (Yesterday)
+// =========================
+app.get("/api/results", (req, res) => {
+  res.json({
+    yesterday: [
+      {
+        id: 4,
+        league: "Premier League",
+        home: "Arsenal",
+        away: "Chelsea",
+        score: "2 - 1",
+        status: "FT"
+      }
+    ]
+  });
+});
+
+// =========================
+// SERVER
+// =========================
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("Server running 👉 http://localhost:" + PORT);
+  console.log("Server running on port", PORT);
 });

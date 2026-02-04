@@ -1,15 +1,14 @@
 const express = require("express");
 const cors = require("cors");
-const fetch = require("node-fetch");
 const path = require("path");
+const fetch = require("node-fetch");
 
 const app = express();
 
 // =====================
 // CONFIG
 // =====================
-const API_KEY =
-  "8e825b0645b7463c1e08ceafc2e16b487b652e8901744a65dd04026207afa2d5";
+const API_KEY = "8e825b0645b7463c1e08ceafc2e16b487b652e8901744a65dd04026207afa2d5";
 const API_BASE = "https://v3.football.api-sports.io";
 
 // =====================
@@ -23,15 +22,12 @@ app.use(express.json());
 // =====================
 app.use(express.static(path.join(__dirname, "goalguide-app")));
 
-// =====================
-// ROOT → index.html
-// =====================
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "goalguide-app", "index.html"));
 });
 
 // =====================
-// LIVE MATCHES
+// API: LIVE MATCHES
 // =====================
 app.get("/api/live", async (req, res) => {
   try {
@@ -44,20 +40,20 @@ app.get("/api/live", async (req, res) => {
     const data = await response.json();
     res.json(data.response);
   } catch (err) {
-    res.status(500).json({ error: "Live matches fetch failed" });
+    res.status(500).json({ error: "Live API error" });
   }
 });
 
 // =====================
-// FIXTURES
+// API: FIXTURES (TODAY / TOMORROW)
 // ?date=2026-02-04
 // =====================
 app.get("/api/fixtures", async (req, res) => {
-  const date = req.query.date;
-
   try {
+    const { date } = req.query;
+
     const response = await fetch(
-      `${API_BASE}/fixtures${date ? `?date=${date}` : ""}`,
+      `${API_BASE}/fixtures?date=${date}`,
       {
         headers: {
           "x-apisports-key": API_KEY
@@ -68,17 +64,19 @@ app.get("/api/fixtures", async (req, res) => {
     const data = await response.json();
     res.json(data.response);
   } catch (err) {
-    res.status(500).json({ error: "Fixtures fetch failed" });
+    res.status(500).json({ error: "Fixtures API error" });
   }
 });
 
 // =====================
-// MATCH DETAIL
+// API: MATCH DETAIL
 // =====================
 app.get("/api/match/:id", async (req, res) => {
   try {
+    const { id } = req.params;
+
     const response = await fetch(
-      `${API_BASE}/fixtures?id=${req.params.id}`,
+      `${API_BASE}/fixtures?id=${id}`,
       {
         headers: {
           "x-apisports-key": API_KEY
@@ -89,8 +87,15 @@ app.get("/api/match/:id", async (req, res) => {
     const data = await response.json();
     res.json(data.response[0]);
   } catch (err) {
-    res.status(500).json({ error: "Match detail fetch failed" });
+    res.status(500).json({ error: "Match detail API error" });
   }
+});
+
+// =====================
+// 404
+// =====================
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" });
 });
 
 // =====================
@@ -98,5 +103,5 @@ app.get("/api/match/:id", async (req, res) => {
 // =====================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`✅ GOAL GUIDE API running on http://localhost:${PORT}`);
+  console.log(`✅ Server running on http://localhost:${PORT}`);
 });

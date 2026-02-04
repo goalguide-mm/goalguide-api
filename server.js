@@ -3,6 +3,7 @@ const cors = require("cors");
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 
 // =====================
 // ROOT
@@ -36,18 +37,26 @@ app.get("/api/live", (req, res) => {
 });
 
 // =====================
-// FIXTURES (TODAY / TOMORROW)
+// FIXTURES (today / yesterday / tomorrow)
+// ?day=0  => today
+// ?day=-1 => yesterday
+// ?day=1  => tomorrow
 // =====================
 app.get("/api/fixtures", (req, res) => {
-  res.json([
+  const day = Number(req.query.day); // 0, -1, 1
+
+  const matches = [
     {
       id: 1,
       league: "Premier League",
-      leagueLogo: "https://...",
+      leagueLogo:
+        "https://upload.wikimedia.org/wikipedia/en/f/f2/Premier_League_Logo.svg",
       home: "Arsenal",
-      homeLogo: "https://...",
+      homeLogo:
+        "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg",
       away: "Chelsea",
-      awayLogo: "https://...",
+      awayLogo:
+        "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg",
       status: "LIVE",
       minute: 54,
       homeScore: 2,
@@ -73,8 +82,26 @@ app.get("/api/fixtures", (req, res) => {
       homeScore: 0,
       awayScore: 0,
       day: 0
+    },
+    {
+      id: 4,
+      league: "Premier League",
+      home: "Newcastle",
+      away: "Arsenal",
+      status: "NS",
+      homeScore: 0,
+      awayScore: 0,
+      day: 1
     }
-  ]);
+  ];
+
+  // day filter မထည့်ရင် အားလုံးပြ
+  if (isNaN(day)) {
+    return res.json(matches);
+  }
+
+  const filtered = matches.filter(m => m.day === day);
+  res.json(filtered);
 });
 
 // =====================
@@ -100,6 +127,13 @@ app.get("/api/match/:id", (req, res) => {
     awayScore: 1,
     stadium: "Emirates Stadium"
   });
+});
+
+// =====================
+// 404 HANDLER
+// =====================
+app.use((req, res) => {
+  res.status(404).json({ error: "API route not found" });
 });
 
 // =====================

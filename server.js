@@ -1,59 +1,45 @@
 const express = require("express");
 const cors = require("cors");
-
 const app = express();
+
 app.use(cors());
 
-// test
-app.get("/", (req, res) => {
-  res.send("Goal Guide API running ✅");
+app.get("/", (req,res)=>{
+  res.send("API running");
 });
 
-// fixtures (today + live + tomorrow)
-app.get("/api/fixtures", (req, res) => {
-  res.json({
-    live: [
-      {
-        id: 1,
-        home: "Liverpool",
-        away: "Man United",
-        minute: 67,
-        status: "LIVE"
-      }
-    ],
-    today: [
-      {
-        id: 2,
-        home: "Arsenal",
-        away: "Chelsea",
-        time: "22:30"
-      }
-    ],
-    tomorrow: [
-      {
-        id: 3,
-        home: "Real Madrid",
-        away: "Barcelona",
-        time: "01:00"
-      }
-    ]
-  });
-});
-
-// results (yesterday)
-app.get("/api/results", (req, res) => {
+// LIVE
+app.get("/api/live",(req,res)=>{
   res.json([
     {
-      id: 10,
-      home: "Bayern",
-      away: "Dortmund",
-      score: "3 - 1",
-      status: "FT"
+      home:"Liverpool",
+      away:"Man United",
+      minute:67,
+      score:"1 - 0"
     }
   ]);
 });
 
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log("Server running 👉 http://localhost:" + PORT);
+// FIXTURES
+app.get("/api/fixtures",(req,res)=>{
+  res.json([
+    {
+      home:"Arsenal",
+      away:"Chelsea"
+    }
+  ]);
 });
+
+// RESULTS
+app.get("/api/results",(req,res)=>{
+  res.json([
+    {
+      home:"Man City",
+      away:"Spurs",
+      score:"3 - 1"
+    }
+  ]);
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT,()=>console.log("Server running"));

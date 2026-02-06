@@ -7,36 +7,20 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 
-const API_KEY = "8e825b0645b7463c1e08ceafc2e16b487b652e8901744a65dd04026207afa2d5";
-const BASE_URL = "https://v3.football.api-sports.io";
+// Sportmonks Key ကို ဤနေရာတွင် ပြန်သုံးထားသည်
+const SPORTMONKS_KEY = "vE8zY78pP70N36jSgMszS8D081e7E4O9u6mO8K293p1d8M9O60p89M9p8O6p";
 
-const headers = {
-    "x-rapidapi-key": API_KEY,
-    "x-rapidapi-host": "v3.football.api-sports.io"
-};
+app.get("/", (req, res) => res.send("Sportmonks API is Online 🚀"));
 
-app.get("/", (req, res) => res.send("GoalGuide API is Active 🚀"));
-
-// Live ပွဲစဉ်များ (Premier League ကို ဦးစားပေးရှာမည်)
-app.get("/api/live", async (req, res) => {
+// Today's Matches (Denmark Superliga)
+app.get("/api/today", async (req, res) => {
     try {
-        const r = await fetch(`${BASE_URL}/fixtures?live=all&league=39`, { headers });
+        const r = await fetch(`https://api.sportmonks.com/v3/football/fixtures?api_token=${SPORTMONKS_KEY}&include=participants;league;scores`);
         const data = await r.json();
-        res.json(data.response || []);
+        res.json(data.data || []);
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
 });
 
-// ရက်စွဲအလိုက် (Premier League ပွဲစဉ်များသာ)
-app.get("/api/fixtures/date/:date", async (req, res) => {
-    try {
-        const r = await fetch(`${BASE_URL}/fixtures?date=${req.params.date}&league=39&season=2025`, { headers });
-        const data = await r.json();
-        res.json(data.response || []);
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-app.listen(PORT, () => console.log(`Server is running`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

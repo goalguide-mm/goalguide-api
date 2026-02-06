@@ -33,11 +33,14 @@ app.get("/api/live", async (req, res) => {
 app.get("/api/fixtures/date/:date", async (req, res) => {
     try {
         const r = await fetch(`${BASE_URL}/fixtures?date=${req.params.date}`, { headers });
-        const data = await r.json();
-        res.json(data.response || []);
+        const result = await r.json();
+        
+        // Console မှာ data ကျမကျ အရင်စစ်မယ်
+        console.log("API Response Status:", result.results); 
+        
+        // response ဆိုတဲ့ အထဲမှာ data ရှိမှ ပို့မယ်
+        res.json(result.response || []);
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
 });
-
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

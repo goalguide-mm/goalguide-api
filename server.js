@@ -40,18 +40,16 @@ app.get("/api/fixtures/date/:date", async (req, res) => {
   }
 });
 
-// ၃။ Today Fixtures - ဒီနေ့ပွဲစဉ်များ (Shortcut)
-app.get("/api/fixtures/today", async (req, res) => {
-  try {
-    const today = new Date().toISOString().split('T')[0];
-    const r = await fetch(
-      `https://api.sportmonks.com/v3/football/fixtures/date/${today}?api_token=${API_TOKEN}&include=participants;league;state;scores`
-    );
-    const data = await r.json();
-    res.json(data.data || []);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+// server.js ထဲမှာ ဒီ route လေးကို ပေါင်းထည့်ပေးပါ
+app.get('/api/today', async (req, res) => {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        // ရှိပြီးသား fixtures function ကို ပြန်သုံးပြီး ဒီနေ့ရက်စွဲနဲ့ ခေါ်ခိုင်းတာပါ
+        const response = await axios.get(`${SPORTMONKS_URL}/fixtures/date/${today}?api_token=${API_TOKEN}&include=participants;league;scores;state`);
+        res.json(response.data.data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // ၄။ Match Detail - ပွဲစဉ်အသေးစိတ်

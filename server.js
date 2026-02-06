@@ -1,21 +1,48 @@
 const express = require("express");
 const fetch = require("node-fetch");
-const cors = require("cors"); // ၁။ CORS ကို ခေါ်ယူပါ
+const cors = require("cors"); // ၁။ CORS ကို ခေါ်ယူခြင်း
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ၂။ CORS Middleware ကို အသုံးပြုပါ (ဒါမှ Website က data လှမ်းတောင်းလို့ ရမှာပါ)
+// ၂။ CORS ကို အသုံးပြုရန် (ဒါမှ browser error ပျောက်မှာပါ)
 app.use(cors());
 
-// Sportmonks Token
+// ၃။ သင့်ရဲ့ Sportmonks API Token
 const API_TOKEN = "W3FI2JepFynSaW5J1fuzuDyMcWVbJTV7kWhGSdm2hGbpo4WUAYFsC6eh0Mrd";
 
 app.get("/", (req, res) => {
   res.send("GoalGuide API is running 🚀");
 });
 
-// Match Detail Route (Sportmonks format ပြင်ထားသည်)
+// Live Scores ရယူရန် Route
+app.get("/api/live", async (req, res) => {
+  try {
+    const r = await fetch(
+      `https://api.sportmonks.com/v3/football/livescores?api_token=${API_TOKEN}`
+    );
+    const data = await r.json();
+    res.json(data.data || []);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ဒီနေ့ပွဲစဉ်များ ရယူရန် Route
+app.get("/api/fixtures/today", async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const r = await fetch(
+      `https://api.sportmonks.com/v3/football/fixtures/date/${today}?api_token=${API_TOKEN}&include=participants`
+    );
+    const data = await r.json();
+    res.json(data.data || []);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ပွဲစဉ်အသေးစိတ် ရယူရန် Route
 app.get("/api/match/:id", async (req, res) => {
   const matchId = req.params.id;
   try {

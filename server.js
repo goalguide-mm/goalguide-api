@@ -1,4 +1,3 @@
-// server.js (Backend)
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
@@ -9,12 +8,12 @@ app.use(cors());
 const RAPID_API_KEY = "8036adbe09msh678d6f6056a98afp13bcddjsn155f505d7a49";
 const RAPID_API_HOST = "sportapi7.p.rapidapi.com";
 
-// Standings Endpoint (404 မဖြစ်အောင် ထည့်ပေးထားသည်)
+// Standings
 app.get("/api/standings", async (req, res) => {
   try {
     const options = {
       method: 'GET',
-      url: 'https://sportapi7.p.rapidapi.com/api/v1/tournament/8/season/61627/standings/total', // EPL Standard
+      url: 'https://sportapi7.p.rapidapi.com/api/v1/tournament/8/season/61627/standings/total',
       headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': RAPID_API_HOST }
     };
     const response = await axios.request(options);
@@ -24,7 +23,7 @@ app.get("/api/standings", async (req, res) => {
   }
 });
 
-// Fixtures Endpoint
+// Fixtures (ပွဲစဉ်များ)
 app.get("/api/fixtures/date/:date", async (req, res) => {
   try {
     const options = {
@@ -54,7 +53,7 @@ app.get("/api/fixtures/:id", async (req, res) => {
   }
 });
 
-// --- ဒီအပိုင်းကို Highlights အတွက် ထည့်ပေးထားပါတယ် ---
+// Highlights
 app.get('/api/highlights', async (req, res) => {
   try {
     const response = await axios.get('https://www.scorebat.com/video-api/v3/');
@@ -64,6 +63,5 @@ app.get('/api/highlights', async (req, res) => {
     res.status(500).json({ error: "Failed to fetch highlights" });
   }
 });
-// ------------------------------------------------
 
-app.listen(3000, () => console.log("Server running..."));
+app.listen(3000, () => console.log("Server is running on port 3000"));

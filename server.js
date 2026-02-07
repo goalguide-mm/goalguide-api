@@ -19,11 +19,11 @@ app.get("/api/standings", async (req, res) => {
     const response = await axios.request(options);
     res.json(response.data.standings || []);
   } catch (error) {
-    res.status(500).json({ error: "Standings fetch failed" });
+    res.status(500).json({ error: "Standings failed" });
   }
 });
 
-// Fixtures (ပွဲစဉ်များ)
+// Fixtures
 app.get("/api/fixtures/date/:date", async (req, res) => {
   try {
     const options = {
@@ -38,30 +38,14 @@ app.get("/api/fixtures/date/:date", async (req, res) => {
   }
 });
 
-// Match Details
-app.get("/api/fixtures/:id", async (req, res) => {
-  try {
-    const options = {
-      method: 'GET',
-      url: `https://sportapi7.p.rapidapi.com/api/v1/event/${req.params.id}`,
-      headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': RAPID_API_HOST }
-    };
-    const response = await axios.request(options);
-    res.json(response.data.event || {});
-  } catch (error) {
-    res.status(404).json({ error: "Not found" });
-  }
-});
-
 // Highlights
 app.get('/api/highlights', async (req, res) => {
   try {
     const response = await axios.get('https://www.scorebat.com/video-api/v3/');
-    const latestHighlights = response.data.response.slice(0, 15); 
-    res.json(latestHighlights);
+    res.json(response.data.response.slice(0, 15));
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch highlights" });
+    res.status(500).json({ error: "Highlights failed" });
   }
 });
 
-app.listen(3000, () => console.log("Server is running on port 3000"));
+app.listen(3000, () => console.log("Server running..."));

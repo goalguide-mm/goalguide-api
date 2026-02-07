@@ -19,7 +19,8 @@ app.get("/api/standings", async (req, res) => {
     const response = await axios.request(options);
     res.json(response.data.standings || []);
   } catch (error) {
-    res.json([]); // Error တက်ရင် အလွတ်ပဲ ပြန်ပေးမယ်
+    console.error("Standings API Error");
+    res.json([]); 
   }
 });
 
@@ -32,13 +33,15 @@ app.get("/api/fixtures/date/:date", async (req, res) => {
       headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': RAPID_API_HOST }
     };
     const response = await axios.request(options);
+    // API က data ပေးရင် အဲ့ဒါကိုပို့မယ်၊ မပေးရင် [] ပို့မယ်
     res.json(response.data.events || []);
   } catch (e) {
-    res.json([]); // Error တက်ရင် အလွတ်ပဲ ပြန်ပေးမယ်
+    console.error("Fixtures API Error");
+    res.json([]); 
   }
 });
 
-// Highlights (ScoreBat က Free မို့လို့ ဒါက အမြဲရနေရပါမယ်)
+// Highlights
 app.get('/api/highlights', async (req, res) => {
   try {
     const response = await axios.get('https://www.scorebat.com/video-api/v3/');

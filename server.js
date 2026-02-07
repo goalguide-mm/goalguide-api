@@ -19,7 +19,7 @@ app.get("/api/standings", async (req, res) => {
     const response = await axios.request(options);
     res.json(response.data.standings || []);
   } catch (error) {
-    res.status(500).json({ error: "Standings failed" });
+    res.json([]); // Error တက်ရင် အလွတ်ပဲ ပြန်ပေးမယ်
   }
 });
 
@@ -34,18 +34,19 @@ app.get("/api/fixtures/date/:date", async (req, res) => {
     const response = await axios.request(options);
     res.json(response.data.events || []);
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.json([]); // Error တက်ရင် အလွတ်ပဲ ပြန်ပေးမယ်
   }
 });
 
-// Highlights
+// Highlights (ScoreBat က Free မို့လို့ ဒါက အမြဲရနေရပါမယ်)
 app.get('/api/highlights', async (req, res) => {
   try {
     const response = await axios.get('https://www.scorebat.com/video-api/v3/');
     res.json(response.data.response.slice(0, 15));
   } catch (error) {
-    res.status(500).json({ error: "Highlights failed" });
+    res.json([]);
   }
 });
 
-app.listen(3000, () => console.log("Server running..."));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

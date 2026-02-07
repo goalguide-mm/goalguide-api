@@ -54,4 +54,16 @@ app.get("/api/fixtures/:id", async (req, res) => {
   }
 });
 
+// --- ဒီအပိုင်းကို Highlights အတွက် ထည့်ပေးထားပါတယ် ---
+app.get('/api/highlights', async (req, res) => {
+  try {
+    const response = await axios.get('https://www.scorebat.com/video-api/v3/');
+    const latestHighlights = response.data.response.slice(0, 15); 
+    res.json(latestHighlights);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch highlights" });
+  }
+});
+// ------------------------------------------------
+
 app.listen(3000, () => console.log("Server running..."));

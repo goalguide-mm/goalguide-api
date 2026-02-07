@@ -5,7 +5,8 @@ const app = express();
 
 app.use(cors());
 
-const RAPID_API_KEY = "8036adbe09msh678d6f6056a98afp13bcddjsn155f505d7a49";
+// သင်ပေးထားတဲ့ SportAPI Key အသစ်
+const RAPID_API_KEY = "2ddaa309ebmsh47cf43acc2412c9p103ba3jsn669fe3c14665";
 const RAPID_API_HOST = "sportapi7.p.rapidapi.com";
 
 // Standings
@@ -19,8 +20,7 @@ app.get("/api/standings", async (req, res) => {
     const response = await axios.request(options);
     res.json(response.data.standings || []);
   } catch (error) {
-    console.error("Standings API Error");
-    res.json([]); 
+    res.json([]);
   }
 });
 
@@ -33,11 +33,9 @@ app.get("/api/fixtures/date/:date", async (req, res) => {
       headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': RAPID_API_HOST }
     };
     const response = await axios.request(options);
-    // API က data ပေးရင် အဲ့ဒါကိုပို့မယ်၊ မပေးရင် [] ပို့မယ်
     res.json(response.data.events || []);
   } catch (e) {
-    console.error("Fixtures API Error");
-    res.json([]); 
+    res.json([]);
   }
 });
 
@@ -52,4 +50,4 @@ app.get('/api/highlights', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log("Server running with new SportAPI key..."));

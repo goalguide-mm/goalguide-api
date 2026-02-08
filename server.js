@@ -8,7 +8,6 @@ app.use(cors());
 const RAPID_API_KEY = "1891f92204msh75d72c439e09157p13bd03jsn35ea6745f414";
 const RAPID_API_HOST = "sportapi7.p.rapidapi.com";
 
-// Cache သိမ်းဖို့ Memory တစ်ခု တည်ဆောက်ခြင်း
 let cacheData = {
     fixtures: {},
     standings: null,
@@ -16,21 +15,18 @@ let cacheData = {
     lastFetch: { fixtures: {}, standings: 0, highlights: 0 }
 };
 
-const CACHE_TIME = 15 * 60 * 1000; // ၁၅ မိနစ်
+const CACHE_TIME = 15 * 60 * 1000;
 
-// Fixtures with Caching
+// Fixtures Route
 app.get("/api/fixtures/date/:date", async (req, res) => {
     const date = req.params.date;
     const now = Date.now();
 
-    // Cache စစ်ဆေးခြင်း
     if (cacheData.fixtures[date] && (now - cacheData.lastFetch.fixtures[date] < CACHE_TIME)) {
-        console.log(`Serving from Cache for date: ${date}`);
         return res.json(cacheData.fixtures[date]);
     }
 
     try {
-        console.log(`Fetching from API for date: ${date}`);
         const options = {
             method: 'GET',
             url: `https://sportapi7.p.rapidapi.com/api/v1/sport/football/scheduled-events/${date}`,
@@ -38,10 +34,6 @@ app.get("/api/fixtures/date/:date", async (req, res) => {
         };
         const response = await axios.request(options);
         const events = response.data.events || [];
-        
-        // --- ဒီနေရာက အရေးကြီးဆုံးပါ ---
-        // နေ့ရက်မတူတဲ့ အသင်းတွေမထပ်အောင် လက်ရှိရက်ရဲ့ Cache ကို အရင်ရှင်းထုတ်ပစ်မယ်
-        cacheData.fixtures[date] = []; 
 
         const processedEvents = events.map(ev => ({
             ...ev,
@@ -50,14 +42,13 @@ app.get("/api/fixtures/date/:date", async (req, res) => {
         
         cacheData.fixtures[date] = processedEvents;
         cacheData.lastFetch.fixtures[date] = now;
-
         res.json(processedEvents);
     } catch (e) {
-        res.json([]); // Error တက်ရင် အဟောင်းကြီးပြမနေတော့ဘဲ Clear ဖြစ်အောင် [] ပဲပြမယ်
+        res.json([]);
     }
 });
 
-// Standings with Caching
+// Standings Route (ဒီနေရာကို သေချာစစ်ပါ)
 app.get("/api/standings", async (req, res) => {
     const now = Date.now();
     if (cacheData.standings && (now - cacheData.lastFetch.standings < CACHE_TIME)) {
@@ -71,18 +62,19 @@ app.get("/api/standings", async (req, res) => {
         };
         const response = await axios.request(options);
         
-        // --- ဒီနေရာကို ပြင်လိုက်ပါတယ် ---
-        // RapidAPI က standings ကို array နဲ့ ပို့တာမို့ ပထမဆုံး item ကိုပဲ ယူလိုက်ပါမယ်
-        const rawData = response.data.standings || [];
-        cacheData.standings = rawData.length > 0 ? rawData[0] : null; 
-        
+        // API ကလာတဲ့ data ထဲက standings array ထဲက ပထမဆုံးတစ်ခုကို ယူပါတယ်
+        const standingsArr = response.data.standings || [];
+        const result = standingsArr.length > 0 ? standingsArr[0] : null;
+
+        cacheData.standings = result;
         cacheData.lastFetch.standings = now;
-        res.json(cacheData.standings);
-    } catch (error) { 
-        res.status(500).json({ error: "Failed to fetch standings" }); 
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: "Server Error" });
     }
 });
-// Highlights with Caching
+
+// Highlights Route
 app.get('/api/highlights', async (req, res) => {
     const now = Date.now();
     if (cacheData.highlights && (now - cacheData.lastFetch.highlights < CACHE_TIME)) {
@@ -90,11 +82,14 @@ app.get('/api/highlights', async (req, res) => {
     }
     try {
         const response = await axios.get('https://www.scorebat.com/video-api/v3/');
-        cacheData.highlights = response.data.response.slice(0, 15);
+        const data = response.data.response.slice(0, 15);
+        cacheData.highlights = data;
         cacheData.lastFetch.highlights = now;
-        res.json(cacheData.highlights);
-    } catch (error) { res.json(cacheData.highlights || []); }
+        res.json(data);
+    } catch (error) {
+        res.json([]);
+    }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server with Caching is running..."));
+app.listen(PORT, () => console.log("Server is running..."));

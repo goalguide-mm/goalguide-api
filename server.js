@@ -16,14 +16,14 @@ let cacheData = {
     lastFetch: { fixtures: {}, standings: 0, highlights: 0 }
 };
 
-const CACHE_TIME = 15 * 60 * 1000; // ၁၅ မိနစ် (မီလီစက္ကန့်ဖြင့်)
+const CACHE_TIME = 15 * 60 * 1000; // ၁၅ မိနစ်
 
 // Fixtures with Caching
 app.get("/api/fixtures/date/:date", async (req, res) => {
     const date = req.params.date;
     const now = Date.now();
 
-    // Cache ထဲမှာ ဒေတာရှိပြီး ၁၅ မိနစ် မကျော်သေးရင် အဲဒါကိုပဲ ပြမယ်
+    // Cache စစ်ဆေးခြင်း
     if (cacheData.fixtures[date] && (now - cacheData.lastFetch.fixtures[date] < CACHE_TIME)) {
         console.log(`Serving from Cache for date: ${date}`);
         return res.json(cacheData.fixtures[date]);
@@ -37,15 +37,20 @@ app.get("/api/fixtures/date/:date", async (req, res) => {
             headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': RAPID_API_HOST }
         };
         const response = await axios.request(options);
-        const matchData = response.data.events || [];
+        const events = response.data.events || [];
         
-        // Cache ထဲ သိမ်းထားလိုက်ခြင်း
-        cacheData.fixtures[date] = matchData;
+        // Frontend မှာ vs ပြရန်အတွက် ပွဲစမစ Logic ထည့်သွင်းခြင်း
+        const processedEvents = events.map(ev => ({
+            ...ev,
+            isStarted: ev.status?.type !== "notstarted" // ပွဲမစသေးရင် false ပြန်ပေးမည်
+        }));
+        
+        // Cache ထဲ သိမ်းခြင်း
+        cacheData.fixtures[date] = processedEvents;
         cacheData.lastFetch.fixtures[date] = now;
 
-        res.json(matchData);
+        res.json(processedEvents);
     } catch (e) {
-        // Error တက်ရင်လည်း အရင်ရှိပြီးသား Cache ကိုပဲ ပြပေးမယ် (မရှိရင် [] ပြမယ်)
         res.json(cacheData.fixtures[date] || []);
     }
 });
@@ -69,7 +74,7 @@ app.get("/api/standings", async (req, res) => {
     } catch (error) { res.json(cacheData.standings || []); }
 });
 
-// Highlights (ScoreBat API က Limit သိပ်မရှိလို့ Cache သုံးတာ ပိုမြန်စေတယ်)
+// Highlights with Caching
 app.get('/api/highlights', async (req, res) => {
     const now = Date.now();
     if (cacheData.highlights && (now - cacheData.lastFetch.highlights < CACHE_TIME)) {

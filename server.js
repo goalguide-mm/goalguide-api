@@ -5,7 +5,7 @@ const app = express();
 
 app.use(cors());
 
-const RAPID_API_KEY = "2ddaa309ebmsh47cf43acc2412c9p103ba3jsn669fe3c14665";
+const RAPID_API_KEY = "1891f92204msh75d72c439e09157p13bd03jsn35ea6745f414";
 const RAPID_API_HOST = "sportapi7.p.rapidapi.com";
 
 // Cache သိမ်းဖို့ Memory တစ်ခု တည်ဆောက်ခြင်း

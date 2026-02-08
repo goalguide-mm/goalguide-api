@@ -44,11 +44,12 @@ app.get("/api/fixtures/date/:date", async (req, res) => {
         cacheData.lastFetch.fixtures[date] = now;
         res.json(processedEvents);
     } catch (e) {
+        console.error("Fixture Error:", e.message);
         res.json([]);
     }
 });
 
-// Standings Route (ဒီနေရာကို သေချာစစ်ပါ)
+// Standings Route (အမှတ်ပေးဇယားအတွက် အဓိကပြင်ဆင်ချက်)
 app.get("/api/standings", async (req, res) => {
     const now = Date.now();
     if (cacheData.standings && (now - cacheData.lastFetch.standings < CACHE_TIME)) {
@@ -62,15 +63,19 @@ app.get("/api/standings", async (req, res) => {
         };
         const response = await axios.request(options);
         
-        // API ကလာတဲ့ data ထဲက standings array ထဲက ပထမဆုံးတစ်ခုကို ယူပါတယ်
-        const standingsArr = response.data.standings || [];
-        const result = standingsArr.length > 0 ? standingsArr[0] : null;
+        // API response ကို သေချာစစ်ဆေးပြီး ပထမဆုံး standing data ကို ပို့ပေးခြင်း
+        const stData = response.data.standings;
+        if (stData && Array.isArray(stData) && stData.length > 0) {
+            cacheData.standings = stData[0]; // rows ပါဝင်သော object ကိုယူသည်
+        } else {
+            cacheData.standings = { rows: [] };
+        }
 
-        cacheData.standings = result;
         cacheData.lastFetch.standings = now;
-        res.json(result);
+        res.json(cacheData.standings);
     } catch (error) {
-        res.status(500).json({ error: "Server Error" });
+        console.error("Standings Error:", error.message);
+        res.status(500).json({ error: "Failed to fetch standings", rows: [] });
     }
 });
 
@@ -82,10 +87,10 @@ app.get('/api/highlights', async (req, res) => {
     }
     try {
         const response = await axios.get('https://www.scorebat.com/video-api/v3/');
-        const data = response.data.response.slice(0, 15);
-        cacheData.highlights = data;
+        const hData = response.data.response ? response.data.response.slice(0, 15) : [];
+        cacheData.highlights = hData;
         cacheData.lastFetch.highlights = now;
-        res.json(data);
+        res.json(hData);
     } catch (error) {
         res.json([]);
     }

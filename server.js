@@ -1,4 +1,5 @@
 const express = require("express");
+<<<<<<< HEAD
 const axios = require("axios");
 const cors = require("cors");
 const app = express();
@@ -64,3 +65,56 @@ app.get('/api/highlights', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Server is running perfectly..."));
+=======
+const cors = require("cors");
+
+const app = express();
+
+app.use(cors({
+  origin: "*"
+}));
+
+app.use(express.json());
+
+
+
+const API_KEY = "8e825b0645b7463c1e08ceafc2e16b487b652e8901744a65dd04026207afa2d5";
+
+/* ===== TEST ===== */
+app.get("/test", (req, res) => {
+  res.json({ status: "ok", message: "Test route working ✅" });
+});
+
+/* ===== LIVE MATCHES ===== */
+app.get("/api/live", async (req, res) => {
+  try {
+    const url = `https://apiv2.allsportsapi.com/football/?met=Livescore&APIkey=${API_KEY}`;
+    const r = await fetch(url);
+    const json = await r.json();
+    res.json(json);
+  } catch (err) {
+    res.status(500).json({ error: "Live fetch failed", details: err.message });
+  }
+});
+
+/* ===== FIXTURES ===== */
+app.get("/api/fixtures", async (req, res) => {
+  try {
+    const today = new Date().toISOString().split("T")[0];
+
+    const url = `https://apiv2.allsportsapi.com/football/?met=Fixtures&from=${today}&to=${today}&APIkey=${API_KEY}`;
+    const r = await fetch(url);
+    const json = await r.json();
+    res.json(json);
+  } catch (err) {
+    res.status(500).json({ error: "Fixtures fetch failed", details: err.message });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+
+>>>>>>> 00ed70d (upload my api code)

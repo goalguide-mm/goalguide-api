@@ -39,19 +39,21 @@ app.get("/api/fixtures/date/:date", async (req, res) => {
         const response = await axios.request(options);
         const events = response.data.events || [];
         
-        // Frontend မှာ vs ပြရန်အတွက် ပွဲစမစ Logic ထည့်သွင်းခြင်း
+        // --- ဒီနေရာက အရေးကြီးဆုံးပါ ---
+        // နေ့ရက်မတူတဲ့ အသင်းတွေမထပ်အောင် လက်ရှိရက်ရဲ့ Cache ကို အရင်ရှင်းထုတ်ပစ်မယ်
+        cacheData.fixtures[date] = []; 
+
         const processedEvents = events.map(ev => ({
             ...ev,
-            isStarted: ev.status?.type !== "notstarted" // ပွဲမစသေးရင် false ပြန်ပေးမည်
+            isStarted: ev.status?.type !== "notstarted"
         }));
         
-        // Cache ထဲ သိမ်းခြင်း
         cacheData.fixtures[date] = processedEvents;
         cacheData.lastFetch.fixtures[date] = now;
 
         res.json(processedEvents);
     } catch (e) {
-        res.json(cacheData.fixtures[date] || []);
+        res.json([]); // Error တက်ရင် အဟောင်းကြီးပြမနေတော့ဘဲ Clear ဖြစ်အောင် [] ပဲပြမယ်
     }
 });
 

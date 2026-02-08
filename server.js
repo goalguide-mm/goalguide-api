@@ -70,12 +70,18 @@ app.get("/api/standings", async (req, res) => {
             headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': RAPID_API_HOST }
         };
         const response = await axios.request(options);
-        cacheData.standings = response.data.standings || [];
+        
+        // --- ဒီနေရာကို ပြင်လိုက်ပါတယ် ---
+        // RapidAPI က standings ကို array နဲ့ ပို့တာမို့ ပထမဆုံး item ကိုပဲ ယူလိုက်ပါမယ်
+        const rawData = response.data.standings || [];
+        cacheData.standings = rawData.length > 0 ? rawData[0] : null; 
+        
         cacheData.lastFetch.standings = now;
         res.json(cacheData.standings);
-    } catch (error) { res.json(cacheData.standings || []); }
+    } catch (error) { 
+        res.status(500).json({ error: "Failed to fetch standings" }); 
+    }
 });
-
 // Highlights with Caching
 app.get('/api/highlights', async (req, res) => {
     const now = Date.now();

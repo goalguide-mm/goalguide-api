@@ -22,22 +22,34 @@ app.get("/api/standings", async (req, res) => {
 });
 
 // Fixtures (ဒီအပိုင်းကို image_1b35e4.png အရ ပြင်ထားပါတယ်)
+// Fixtures - နေ့စွဲပုံစံကို အလိုအလျောက် ပြောင်းပေးအောင် ပြင်ဆင်ထားသည်
 app.get("/api/fixtures/date/:date", async (req, res) => {
   try {
+    let requestedDate = req.params.date;
+
+    // အကယ်၍ App က 08/02/2026 (DD/MM/YYYY) နဲ့ ပို့လာရင် 2026-02-08 ပြောင်းပေးခြင်း
+    if (requestedDate.includes("-") && requestedDate.split("-")[0].length === 2) {
+        // 08-02-2026 format ဖြစ်နေလျှင်
+        const parts = requestedDate.split("-");
+        requestedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    } else if (requestedDate.includes("/")) {
+        // 08/02/2026 format ဖြစ်နေလျှင်
+        const parts = requestedDate.split("/");
+        requestedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+
     const options = {
       method: 'GET',
-      url: `https://sportapi7.p.rapidapi.com/api/v1/sport/football/scheduled-events/${req.params.date}`,
+      url: `https://sportapi7.p.rapidapi.com/api/v1/sport/football/scheduled-events/${requestedDate}`,
       headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': RAPID_API_HOST }
     };
+    
     const response = await axios.request(options);
+    // ဒေတာရှိလျှင် ပြပေးမည်၊ မရှိလျှင် [] ပြပေးမည်
+    res.json(response.data.events || []);
     
-    // image_1b35e4.png အရ ဒေတာက events ထဲမှာ ရှိနေတာမို့ သေချာထုတ်ပေးထားပါတယ်
-    const allData = response.data;
-    const matchEvents = allData.events || allData.data || (Array.isArray(allData) ? allData : []);
-    
-    res.json(matchEvents);
   } catch (e) { 
-    console.error("Fetch Error:", e.message);
+    console.error("API Error:", e.message);
     res.json([]); 
   }
 });

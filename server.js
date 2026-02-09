@@ -35,8 +35,27 @@ app.get("/api/fixtures/date/:date", async (req, res) => {
         const response = await axios.request(options);
         const events = response.data.events || [];
 
+        // Worker ဖတ်ရလွယ်အောင် ဒေတာကို Mapping ပြင်ဆင်ခြင်း
         const processedEvents = events.map(ev => ({
-            ...ev,
+            homeTeam: {
+                id: ev.homeTeam?.id,
+                name: ev.homeTeam?.name
+            },
+            awayTeam: {
+                id: ev.awayTeam?.id,
+                name: ev.awayTeam?.name
+            },
+            homeScore: {
+                display: ev.homeScore?.display || "0"
+            },
+            awayScore: {
+                display: ev.awayScore?.display || "0"
+            },
+            startTimestamp: ev.startTimestamp,
+            status: ev.status,
+            tournament: {
+                name: ev.tournament?.name || "Football"
+            },
             isStarted: ev.status?.type !== "notstarted"
         }));
         
@@ -49,7 +68,7 @@ app.get("/api/fixtures/date/:date", async (req, res) => {
     }
 });
 
-// Standings Route (အမှတ်ပေးဇယားအတွက် အဓိကပြင်ဆင်ချက်)
+// Standings Route
 app.get("/api/standings", async (req, res) => {
     const now = Date.now();
     if (cacheData.standings && (now - cacheData.lastFetch.standings < CACHE_TIME)) {
@@ -63,10 +82,9 @@ app.get("/api/standings", async (req, res) => {
         };
         const response = await axios.request(options);
         
-        // API response ကို သေချာစစ်ဆေးပြီး ပထမဆုံး standing data ကို ပို့ပေးခြင်း
         const stData = response.data.standings;
         if (stData && Array.isArray(stData) && stData.length > 0) {
-            cacheData.standings = stData[0]; // rows ပါဝင်သော object ကိုယူသည်
+            cacheData.standings = stData[0]; 
         } else {
             cacheData.standings = { rows: [] };
         }
@@ -97,4 +115,4 @@ app.get('/api/highlights', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server is running..."));
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

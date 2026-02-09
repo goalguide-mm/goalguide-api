@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "id": "1",
+    "matchTime": "20:30",
+    "status": "Live",
+    "leagueName": "Premier League",
+    "homeName": "Man Utd",
+    "awayName": "Liverpool",
+    "score": "2 - 1"
+  },
+  {
+    "id": "2",
+    "matchTime": "22:00",
+    "status": "vs",
+    "leagueName": "La Liga",
+    "homeName": "Real Madrid",
+    "awayName": "Barcelona",
+    "score": "0 - 0"
+  }
+]

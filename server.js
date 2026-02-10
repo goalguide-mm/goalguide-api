@@ -5,21 +5,14 @@ const app = express();
 
 app.use(cors());
 
-const RAPID_API_KEY = "1891f92204msh75d72c439e09157p13bd03jsn35ea6745f414";
-const RAPID_API_HOST = "sportapi7.p.rapidapi.com";
+// Email ကရတဲ့ မင်းရဲ့ Token ကို ဒီမှာ ထည့်ထားပေးတယ်
+const FOOTBALL_DATA_KEY = "c8c972ee26be439581c583f3d2d5f9cd";
 
-let cacheData = {
-    fixtures: {},
-    standings: null,
-    highlights: null,
-    lastFetch: { fixtures: {}, standings: 0, highlights: 0 }
-};
-
+let cacheData = { fixtures: {}, lastFetch: { fixtures: {} } };
 const CACHE_TIME = 15 * 60 * 1000;
 
-// Fixtures Route
 app.get("/api/fixtures/date/:date", async (req, res) => {
-    const date = req.params.date;
+    const date = req.params.date; // Format: YYYY-MM-DD
     const now = Date.now();
 
     if (cacheData.fixtures[date] && (now - cacheData.lastFetch.fixtures[date] < CACHE_TIME)) {
@@ -27,92 +20,37 @@ app.get("/api/fixtures/date/:date", async (req, res) => {
     }
 
     try {
-        const options = {
-            method: 'GET',
-            url: `https://sportapi7.p.rapidapi.com/api/v1/sport/football/scheduled-events/${date}`,
-            headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': RAPID_API_HOST }
-        };
-        const response = await axios.request(options);
-        const events = response.data.events || [];
+        const response = await axios.get(`https://api.football-data.org/v4/matches?dateFrom=${date}&dateTo=${date}`, {
+            headers: { 'X-Auth-Token': FOOTBALL_DATA_KEY }
+        });
 
-        // Worker ဖတ်ရလွယ်အောင် ဒေတာကို Mapping ပြင်ဆင်ခြင်း
-        const processedEvents = events.map(ev => ({
-            homeTeam: {
-                id: ev.homeTeam?.id,
-                name: ev.homeTeam?.name
-            },
-            awayTeam: {
-                id: ev.awayTeam?.id,
-                name: ev.awayTeam?.name
-            },
-            homeScore: {
-                display: ev.homeScore?.display || "0"
-            },
-            awayScore: {
-                display: ev.awayScore?.display || "0"
-            },
-            startTimestamp: ev.startTimestamp,
-            status: ev.status,
-            tournament: {
-                name: ev.tournament?.name || "Football"
-            },
-            isStarted: ev.status?.type !== "notstarted"
-        }));
+        const matches = response.data.matches || [];
         
+        // Cloudflare Worker က ဖတ်လို့ရမယ့် ပုံစံအတိုင်း ပြောင်းလဲခြင်း
+        const processedEvents = matches.map(match => ({
+            homeTeam: { 
+                name: match.homeTeam.shortName || match.homeTeam.name, 
+                id: match.homeTeam.id 
+            },
+            awayTeam: { 
+                name: match.awayTeam.shortName || match.awayTeam.name, 
+                id: match.awayTeam.id 
+            },
+            homeScore: { display: match.score.fullTime.home !== null ? match.score.fullTime.home : "0" },
+            awayScore: { display: match.score.fullTime.away !== null ? match.score.fullTime.away : "0" },
+            startTimestamp: new Date(match.utcDate).getTime() / 1000,
+            status: { type: match.status === "IN_PLAY" ? "inprogress" : "notstarted" },
+            tournament: { name: match.competition.name }
+        }));
+
         cacheData.fixtures[date] = processedEvents;
         cacheData.lastFetch.fixtures[date] = now;
         res.json(processedEvents);
     } catch (e) {
-        console.error("Fixture Error:", e.message);
-        res.json([]);
-    }
-});
-
-// Standings Route
-app.get("/api/standings", async (req, res) => {
-    const now = Date.now();
-    if (cacheData.standings && (now - cacheData.lastFetch.standings < CACHE_TIME)) {
-        return res.json(cacheData.standings);
-    }
-    try {
-        const options = {
-            method: 'GET',
-            url: 'https://sportapi7.p.rapidapi.com/api/v1/tournament/8/season/61627/standings/total',
-            headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': RAPID_API_HOST }
-        };
-        const response = await axios.request(options);
-        
-        const stData = response.data.standings;
-        if (stData && Array.isArray(stData) && stData.length > 0) {
-            cacheData.standings = stData[0]; 
-        } else {
-            cacheData.standings = { rows: [] };
-        }
-
-        cacheData.lastFetch.standings = now;
-        res.json(cacheData.standings);
-    } catch (error) {
-        console.error("Standings Error:", error.message);
-        res.status(500).json({ error: "Failed to fetch standings", rows: [] });
-    }
-});
-
-// Highlights Route
-app.get('/api/highlights', async (req, res) => {
-    const now = Date.now();
-    if (cacheData.highlights && (now - cacheData.lastFetch.highlights < CACHE_TIME)) {
-        return res.json(cacheData.highlights);
-    }
-    try {
-        const response = await axios.get('https://www.scorebat.com/video-api/v3/');
-        const hData = response.data.response ? response.data.response.slice(0, 15) : [];
-        cacheData.highlights = hData;
-        cacheData.lastFetch.highlights = now;
-        res.json(hData);
-    } catch (error) {
+        console.error("Football-Data Error:", e.message);
         res.json([]);
     }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+app.listen(PORT, () => console.log("Server is running on Football-Data.org API"));

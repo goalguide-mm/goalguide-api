@@ -5,45 +5,51 @@ const app = express();
 
 app.use(cors());
 
-// Highlight နှင့် ပွဲစဉ်စုံလင်သော API Key (Active ဖြစ်ပြီးသားပါ)
+// အဓိက သုံးမယ့် Key နဲ့ Host (သင့် Dashboard ပါ အချက်အလက်များ)
 const RAPID_API_KEY = '1891f92204msh75d72c439e09157p13bd03jsn35ea6745f414';
-const RAPID_HOST = 'free-football-soccer-videos.p.rapidapi.com';
+const HIGHLIGHT_HOST = 'free-football-soccer-videos.p.rapidapi.com';
+const LIVESCORE_HOST = 'free-livescore-api.p.rapidapi.com'; // ဒါကို ပြင်ထားပါတယ်
 
-// ၁။ Highlights (ဗီဒီယိုများ) - ဒါကို အရင်ဆုံး ပြန်ပေါ်အောင် လုပ်ပေးထားပါတယ်
+// ၁။ Highlights (အခု အလုပ်လုပ်နေတဲ့ အပိုင်း)
 app.get('/api/highlights', async (req, res) => {
     try {
-        const response = await axios.get(`https://${RAPID_HOST}/`, {
-            headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': RAPID_HOST }
+        const response = await axios.get(`https://${HIGHLIGHT_HOST}/`, {
+            headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': HIGHLIGHT_HOST }
         });
-        // API မှ ဗီဒီယို data များကို ပို့ပေးခြင်း
         res.json(response.data || []);
     } catch (e) {
         res.json([]);
     }
 });
 
-// ၂။ အမှတ်ပေးဇယား (Standings)
+// ၂။ အမှတ်ပေးဇယား (Standings) - Host နဲ့ Endpoint ကို ပြင်ပေးထားပါတယ်
 app.get('/api/standings/:league', async (req, res) => {
     try {
-        // ပိုစိတ်ချရသော Standings Endpoint သို့ လှမ်းတောင်းခြင်း
-        const response = await axios.get(`https://livescore-api-live.p.rapidapi.com/soccer/standings`, {
-            params: { league: '25', season: '2023-2024' }, // Premier League ID
-            headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': 'livescore-api-live.p.rapidapi.com' }
+        const response = await axios.get(`https://${LIVESCORE_HOST}/soccer/standings`, {
+            params: { league: '25' }, // Premier League ID
+            headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': LIVESCORE_HOST }
         });
-        res.json(response.data.data.table || []);
-    } catch (e) { res.json([]); }
+        // API response structure အရ data ကို ပို့ပေးခြင်း
+        res.json(response.data.data || response.data || []);
+    } catch (e) { 
+        console.error("Standings Error:", e.message);
+        res.json([]); 
+    }
 });
 
-// ၃။ ပွဲစဉ်များ (Fixtures)
+// ၃။ ပွဲစဉ်များ (Fixtures) - Host ကို ပြင်ပေးထားပါတယ်
 app.get('/api/fixtures/date/:date', async (req, res) => {
     try {
-        const response = await axios.get(`https://livescore-api-live.p.rapidapi.com/soccer/fixtures/list`, {
+        const response = await axios.get(`https://${LIVESCORE_HOST}/soccer/fixtures-by-date`, {
             params: { date: req.params.date },
-            headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': 'livescore-api-live.p.rapidapi.com' }
+            headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': LIVESCORE_HOST }
         });
-        res.json(response.data.data.fixtures || []);
-    } catch (e) { res.json([]); }
+        res.json(response.data.data || response.data || []);
+    } catch (e) { 
+        console.error("Fixtures Error:", e.message);
+        res.json([]); 
+    }
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log('Server is running'));
+app.listen(PORT, () => console.log('Server is running on port ' + PORT));

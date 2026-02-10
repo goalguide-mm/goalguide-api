@@ -1,63 +1,27 @@
-const express = require("express");
-const axios = require("axios"); // <--- ဒီကောင်ရှိဖို့ npm install axios အရင်လုပ်ရမယ်
-const cors = require("cors");
-const app = express();
+const fetch = require('node-fetch');
+const AbortController = require('abort-controller'); // လိုအပ်ရင် install လုပ်ပါ
 
-app.use(cors());
-
-const FOOTBALL_DATA_KEY = "c8c972ee26be439581c583f3d2d5f9cd";
-
-// API ခေါ်ယူရန် Configuration
-const footballApi = axios.create({
-    baseURL: "https://api.football-data.org/v4",
-    headers: { 'X-Auth-Token': FOOTBALL_DATA_KEY },
-    timeout: 30000 // ၃၀ စက္ကန့်အထိ စောင့်မည်
-});
-
-app.get("/api/fixtures/date/:date", async (req, res) => {
-    const { date } = req.params;
-    console.log(`Searching for date: ${date}`);
+async function getFootballData() {
+    const controller = new AbortController();
+    // 8 စက္ကန့်အစား 20 စက္ကန့် (20000ms) အထိ စောင့်ခိုင်းမယ်
+    const timeout = setTimeout(() => { controller.abort(); }, 20000); 
 
     try {
-        const response = await footballApi.get(`/matches?dateFrom=${date}&dateTo=${date}`);
-        const matches = response.data.matches || [];
-
-        const processed = matches.map(match => ({
-            homeTeam: { name: match.homeTeam.shortName || match.homeTeam.name },
-            awayTeam: { name: match.awayTeam.shortName || match.awayTeam.name },
-            homeScore: { display: match.score.fullTime.home ?? "-" },
-            awayScore: { display: match.score.fullTime.away ?? "-" },
-            startTimestamp: new Date(match.utcDate).getTime() / 1000,
-            status: { type: match.status.toLowerCase() },
-            tournament: { name: match.competition.name }
-        }));
-
-        res.json(processed);
+        const response = await fetch('https://api.football-data.org/v4/matches', {
+            method: 'GET',
+            headers: { 'X-Auth-Token': 'သင့်ရဲ့_API_TOKEN_ဒီမှာထည့်' },
+            signal: controller.signal
+        });
+        
+        const data = await response.json();
+        return data;
     } catch (error) {
-        console.error("API Error:", error.message);
-        res.status(500).json([]);
+        if (error.name === 'AbortError') {
+            console.log('Request timeout ဖြစ်သွားလို့ ရပ်လိုက်ပါပြီ');
+        } else {
+            console.log('Error:', error.message);
+        }
+    } finally {
+        clearTimeout(timeout);
     }
-});
-
-// Standings API
-app.get("/api/standings/:leagueCode", async (req, res) => {
-    try {
-        const league = req.params.leagueCode || "PL";
-        const response = await footballApi.get(`/competitions/${league}/standings`);
-        const standings = response.data.standings[0].table.map(team => ({
-            position: team.position,
-            teamName: team.team.shortName || team.team.name,
-            played: team.playedGames,
-            points: team.points,
-            goalDifference: team.goalDifference
-        }));
-        res.json(standings);
-    } catch (error) {
-        res.status(500).json([]);
-    }
-});
-
-app.get("/api/highlights", (req, res) => res.json([]));
-
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+}

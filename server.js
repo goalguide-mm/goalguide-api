@@ -3,9 +3,15 @@ const axios = require('axios');
 const cors = require('cors');
 
 const app = express();
-app.use(cors());
 
-// သင်နောက်ဆုံးပေးထားတဲ့ API Key
+// CORS Error မတက်အောင် အသေအချာ ခွင့်ပြုပေးထားပါတယ်
+app.use(cors({
+    origin: '*',
+    methods: ['GET'],
+    allowedHeaders: ['Content-Type', 'X-Auth-Token']
+}));
+
+// သင့်ရဲ့ API Key အသစ်
 const API_KEY = '4c9add6d3582492aacdec6bd646ff229'; 
 
 app.get('/api/fixtures/date/:date', async (req, res) => {
@@ -18,7 +24,7 @@ app.get('/api/fixtures/date/:date', async (req, res) => {
             timeout: 60000 
         });
 
-        // Frontend ကုဒ် (script.js) က တောင်းတဲ့ format အတိုင်း ဒီမှာ ပြောင်းပေးလိုက်ပါတယ်
+        // ဝက်ဘ်ဆိုက်ဘက်က script.js နဲ့ အံကိုက်ဖြစ်အောင် data တွေကို map လုပ်ပေးထားပါတယ်
         const matches = (response.data.matches || []).map(m => ({
             tournament: { name: m.competition.name },
             homeTeam: { name: m.homeTeam.shortName || m.homeTeam.name },
@@ -31,12 +37,12 @@ app.get('/api/fixtures/date/:date', async (req, res) => {
 
         res.status(200).json(matches);
     } catch (error) {
-        console.error("API Error:", error.message);
+        console.error("API Error Detail:", error.message);
         res.status(500).json([]);
     }
 });
 
-// Standings နဲ့ တခြား Route တွေအတွက်
+// Table (Standings) အတွက် Route
 app.get('/api/standings/:league', async (req, res) => {
     try {
         const { league } = req.params;
@@ -51,10 +57,14 @@ app.get('/api/standings/:league', async (req, res) => {
             points: row.points
         }));
         res.json(table);
-    } catch (error) { res.status(500).json([]); }
+    } catch (error) {
+        res.status(500).json([]);
+    }
 });
 
 app.get('/api/highlights', (req, res) => res.json([]));
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, '0.0.0.0', () => console.log(`Server is running on port ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is running on port ${PORT}`);
+});

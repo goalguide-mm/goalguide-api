@@ -22,7 +22,7 @@ app.get("/api/fixtures/date/:date", async (req, res) => {
         const url = `https://api.football-data.org/v4/matches?dateFrom=${requestedDate}&dateTo=${requestedDate}`;
         const response = await axios.get(url, {
             headers: { 'X-Auth-Token': FOOTBALL_DATA_KEY },
-            timeout: 8000 // Connection Timeout ၈ စက္ကန့် သတ်မှတ်ထားသည်
+            timeout: 8000
         });
 
         const matches = response.data.matches || [];
@@ -42,13 +42,19 @@ app.get("/api/fixtures/date/:date", async (req, res) => {
 
     } catch (e) {
         console.error("Fixture API Error:", e.message);
-        res.json([]); // Error ဖြစ်ရင် App မှာ အဝိုင်းမလည်အောင် အလွတ် [] ပို့သည်
+        res.json([]);
     }
 });
 
-// --- ၂။ အမှတ်ပေးဇယား (Standings) ယူမည့် API ---
+// --- ၂။ Highlights (သို့မဟုတ် ပွဲစဉ်အကျဉ်း) အတွက် API (404 Error ရှင်းရန်) ---
+app.get("/api/highlights", (req, res) => {
+    // လောလောဆယ် ဒေတာအလွတ်ပဲ ပို့ပေးထားမည် (404 Error မတက်စေရန်)
+    res.json([]);
+});
+
+// --- ၃။ အမှတ်ပေးဇယား (Standings) ယူမည့် API ---
 app.get("/api/standings/:leagueCode", async (req, res) => {
-    const leagueCode = req.params.leagueCode || "PL"; // Default အနေဖြင့် Premier League (PL) ယူမည်
+    const leagueCode = req.params.leagueCode || "PL";
     const now = Date.now();
 
     if (cacheData.standings[leagueCode] && (now - cacheData.lastFetch.standings[leagueCode] < CACHE_TIME)) {
@@ -83,4 +89,4 @@ app.get("/api/standings/:leagueCode", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT} - Standings API added`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

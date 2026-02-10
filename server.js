@@ -7,7 +7,7 @@ app.use(cors());
 const RAPID_API_KEY = '1891f92204msh75d72c439e09157p13bd03jsn35ea6745f414';
 const HOST = 'free-livescore-api.p.rapidapi.com';
 
-// ပွဲစဉ်များအတွက်
+// Fixtures
 app.get('/api/fixtures/date/:date', async (req, res) => {
     try {
         const apiDate = req.params.date.replace(/-/g, '');
@@ -19,24 +19,32 @@ app.get('/api/fixtures/date/:date', async (req, res) => {
     } catch (error) { res.json([]); }
 });
 
-// အမှတ်ပေးဇယား (Table) အတွက် - ဒါမပါလို့ 404 ဖြစ်နေတာပါ
+// Standings - Premier League ID ကို 'premier-league' သို့မဟုတ် 'PL' စမ်းကြည့်ရန်
 app.get('/api/standings/PL', async (req, res) => {
     try {
         const response = await axios.get(`https://${HOST}/livescore/get-standings`, {
-            params: { category: 'soccer', stageId: 'PL' },
+            params: { category: 'soccer', stageId: 'premier-league' }, // ဒီနေရာကို 'premier-league' လို့ ပြောင်းကြည့်ထားပါတယ်
             headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': HOST }
         });
-        const rawTable = response.data.response?.[0]?.Rows || [];
-        const formattedTable = rawTable.map(r => ({
-            position: r.Rn,
-            teamName: r.Tnm,
-            played: r.Pld,
-            goalDifference: r.Gd,
-            points: r.Pts
+        
+        // API response structure ကို စစ်ဆေးပြီး data ဆွဲထုတ်ခြင်း
+        const rawData = response.data.response || [];
+        const rows = rawData[0]?.Rows || [];
+        
+        const formattedTable = rows.map(r => ({
+            position: r.Rn || '-',
+            teamName: r.Tnm || 'Unknown',
+            played: r.Pld || '0',
+            goalDifference: r.Gd || '0',
+            points: r.Pts || '0'
         }));
+        
         res.json(formattedTable);
-    } catch (error) { res.json([]); }
+    } catch (error) { 
+        console.error(error);
+        res.json([]); 
+    }
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, '0.0.0.0', () => console.log("Server running"));
+app.listen(PORT, '0.0.0.0', () => console.log("Server Live"));

@@ -1,34 +1,28 @@
 const express = require('express');
-const axios = require('axios');
+const axios = require('axios'); // သင့်ဆီမှာ ရှိပြီးသားမို့ ဒါပဲ သုံးပါမယ်
 const cors = require('cors');
 
 const app = express();
+app.use(cors());
 
-// CORS ကို အားလုံးအတွက် ခွင့်ပြုပေးလိုက်ပါ (Website ကနေ လှမ်းခေါ်လို့ရအောင်)
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-// သင်နောက်ဆုံးရထားတဲ့ API Token အသစ်
+// သင် အခုလေးတင်ပေးထားတဲ့ API Key အသစ်
 const API_KEY = '4c9add6d3582492aacdec6bd646ff229'; 
 
 app.get('/api/fixtures/date/:date', async (req, res) => {
     try {
         const { date } = req.params;
-        console.log(`Fetching matches for date: ${date}`);
+        console.log(`Fetching matches for: ${date}`);
 
         const response = await axios.get(`https://api.football-data.org/v4/matches?dateFrom=${date}&dateTo=${date}`, {
             headers: { 'X-Auth-Token': API_KEY },
-            timeout: 60000 // ၁ မိနစ် စောင့်ပေးရန်
+            timeout: 60000 // Timeout ကို ၁ မိနစ်အထိ ထားထားပါတယ်
         });
 
-        // Data ပြန်ပို့ပေးရန်
+        // ပွဲစဉ်တွေ ရှိရင် ပို့မယ်၊ မရှိရင် အလွတ် [] ပို့မယ်
         res.status(200).json(response.data.matches || []);
     } catch (error) {
-        console.error("API Error:", error.message);
-        res.status(500).json({ error: "Server connection failed" });
+        console.error("API Error Detail:", error.message);
+        res.status(500).json({ error: "API connection failed" });
     }
 });
 

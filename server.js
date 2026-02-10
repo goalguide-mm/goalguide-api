@@ -7,7 +7,7 @@ app.use(cors());
 const RAPID_API_KEY = '1891f92204msh75d72c439e09157p13bd03jsn35ea6745f414';
 const HOST = 'free-livescore-api.p.rapidapi.com';
 
-// Fixtures Route
+// ပွဲစဉ်များအတွက်
 app.get('/api/fixtures/date/:date', async (req, res) => {
     try {
         const apiDate = req.params.date.replace(/-/g, '');
@@ -19,7 +19,7 @@ app.get('/api/fixtures/date/:date', async (req, res) => {
     } catch (error) { res.json([]); }
 });
 
-// Standings Route (ဒါရှိမှ Table ပေါ်မှာပါ)
+// အမှတ်ပေးဇယား (Table) အတွက် - ဒါမပါလို့ 404 ဖြစ်နေတာပါ
 app.get('/api/standings/PL', async (req, res) => {
     try {
         const response = await axios.get(`https://${HOST}/livescore/get-standings`, {

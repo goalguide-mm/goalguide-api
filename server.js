@@ -3,9 +3,15 @@ const axios = require('axios');
 const cors = require('cors');
 
 const app = express();
-app.use(cors());
 
-// သင်နောက်ဆုံးရထားတဲ့ API Token အသစ်ကို ဒီမှာထည့်ထားပါတယ်
+// CORS ကို အားလုံးအတွက် ခွင့်ပြုပေးလိုက်ပါ (Website ကနေ လှမ်းခေါ်လို့ရအောင်)
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// သင်နောက်ဆုံးရထားတဲ့ API Token အသစ်
 const API_KEY = '4c9add6d3582492aacdec6bd646ff229'; 
 
 app.get('/api/fixtures/date/:date', async (req, res) => {
@@ -13,26 +19,20 @@ app.get('/api/fixtures/date/:date', async (req, res) => {
         const { date } = req.params;
         console.log(`Fetching matches for date: ${date}`);
 
-        // football-data.org API ဆီကနေ data လှမ်းယူခြင်း
         const response = await axios.get(`https://api.football-data.org/v4/matches?dateFrom=${date}&dateTo=${date}`, {
             headers: { 'X-Auth-Token': API_KEY },
-            timeout: 60000 // API ဘက်က နှေးနေရင် 1 မိနစ်အထိ စောင့်ခိုင်းထားပါတယ်
+            timeout: 60000 // ၁ မိနစ် စောင့်ပေးရန်
         });
 
-        // Data ရရင် Frontend ဆီ ပြန်ပို့ပေးပါတယ်
-        res.json(response.data.matches || []);
+        // Data ပြန်ပို့ပေးရန်
+        res.status(200).json(response.data.matches || []);
     } catch (error) {
-        // Error ဖြစ်ရင် Logs ထဲမှာ အကြောင်းရင်းကို ပြပေးမှာပါ
-        console.error("API Error Detail:", error.response ? error.response.data : error.message);
-        res.status(500).json({ 
-            error: "API connection failed", 
-            details: error.message 
-        });
+        console.error("API Error:", error.message);
+        res.status(500).json({ error: "Server connection failed" });
     }
 });
 
-// Render ရဲ့ Port setting အတွက် ဖြစ်ပါတယ်
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
 });

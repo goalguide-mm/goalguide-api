@@ -4,7 +4,7 @@ const cors = require('cors');
 
 const app = express();
 
-// CORS ကို အားလုံးအတွက် ခွင့်ပြုပေးလိုက်ပါ (ဒါမှ Website က ခေါ်လို့ရမှာပါ)
+// CORS ကို အားလုံးအတွက် လုံးဝပွင့်သွားအောင် လုပ်ပေးထားပါတယ်
 app.use(cors({
     origin: '*',
     methods: ['GET'],
@@ -21,10 +21,11 @@ app.get('/api/fixtures/date/:date', async (req, res) => {
 
         const response = await axios.get(`https://api.football-data.org/v4/matches?dateFrom=${date}&dateTo=${date}`, {
             headers: { 'X-Auth-Token': API_KEY },
-            timeout: 60000 // API ဘက်က နှေးနေရင် ၆၀ စက္ကန့် စောင့်ပေးမယ်
+            timeout: 60000 
         });
 
-        // Website က script.js နဲ့ အံကိုက်ဖြစ်အောင် data ကို map လုပ်ပေးလိုက်ပါပြီ
+        // Frontend (script.js) က data.matches.tournament.name ဆိုပြီး ဖတ်ထားတာဖြစ်လို့
+        // ဒီနေရာမှာ အတိအကျ ပြန်ပြင်ပေးထားပါတယ်
         const matches = (response.data.matches || []).map(m => ({
             tournament: { name: m.competition.name },
             homeTeam: { name: m.homeTeam.shortName || m.homeTeam.name },
@@ -38,11 +39,12 @@ app.get('/api/fixtures/date/:date', async (req, res) => {
         res.status(200).json(matches);
     } catch (error) {
         console.error("API Error Detail:", error.message);
-        res.status(500).json([]); // Error တက်ရင် အလွတ် [] ပို့ပေးမယ်
+        // Error ဖြစ်ရင်တောင် Frontend မှာ မရပ်သွားအောင် အလွတ် [] ပို့ပေးပါမယ်
+        res.status(200).json([]); 
     }
 });
 
-// Table (Standings) အတွက် Route
+// Table အတွက် Route
 app.get('/api/standings/:league', async (req, res) => {
     try {
         const { league } = req.params;
@@ -57,10 +59,12 @@ app.get('/api/standings/:league', async (req, res) => {
             points: row.points
         }));
         res.json(table);
-    } catch (error) { res.status(500).json([]); }
+    } catch (error) { res.json([]); }
 });
 
 app.get('/api/highlights', (req, res) => res.json([]));
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, '0.0.0.0', () => console.log(`Server is running on port ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is running on port ${PORT}`);
+});

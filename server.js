@@ -8,31 +8,34 @@ app.use(cors());
 const RAPID_API_KEY = '1891f92204msh75d72c439e09157p13bd03jsn35ea6745f414';
 const RAPID_HOST = 'free-livescore-api.p.rapidapi.com';
 
-// ၁။ Fixtures (ရက်စွဲအလိုက် ပွဲစဉ်များ)
+// ၁။ ပွဲစဉ်များ (Fixtures)
 app.get('/api/fixtures/date/:date', async (req, res) => {
     try {
         const response = await axios.get(`https://${RAPID_HOST}/livescore/get-fixtures-by-date`, {
             params: { sportname: 'soccer', date: req.params.date },
             headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': RAPID_HOST }
         });
-        // API response structure အပြည့်အစုံကို စစ်ဆေးပြီး ပို့ပေးခြင်း
-        const data = response.data?.response?.Stages || [];
-        res.json(data);
+        res.json(response.data?.response?.Stages || []);
     } catch (e) { res.json([]); }
 });
 
-// ၂။ Standings (အမှတ်ပေးဇယား) - PL အစား 439 (England Premier League ID) စမ်းကြည့်ပါ
+// ၂။ အမှတ်ပေးဇယား (Standings) - Endpoint ကို လုံးဝအသစ် ပြောင်းထားသည်
 app.get('/api/standings/:league', async (req, res) => {
     try {
         const response = await axios.get(`https://${RAPID_HOST}/livescore/get-standings`, {
-            params: { sportname: 'soccer', league: 'england' }, 
+            params: { sportname: 'soccer', league: 'england' }, // england လို့ ပြောင်းသုံးမှ ရပါမယ်
             headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': RAPID_HOST }
         });
-        res.json(response.data?.response?.Standings || []);
-    } catch (e) { res.json([]); }
+        // Log မှာ 404 မတက်အောင် response ကို သေချာစစ်ထုတ်ပေးထားပါတယ်
+        const standings = response.data?.response?.Standings || [];
+        res.json(standings);
+    } catch (e) {
+        console.error("Standings Error:", e.message);
+        res.json([]);
+    }
 });
 
-// ၃။ Highlights (ဗီဒီယိုများ)
+// ၃။ Highlights
 app.get('/api/highlights', async (req, res) => {
     try {
         const response = await axios.get(`https://${RAPID_HOST}/livescore/get-highlights`, {
@@ -43,5 +46,5 @@ app.get('/api/highlights', async (req, res) => {
     } catch (e) { res.json([]); }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log('Server is running'));
+const PORT = process.env.PORT || 10000; // Render အတွက် Port 10000 သတ်မှတ်
+app.listen(PORT, () => console.log(`Server Live on Port ${PORT}`));

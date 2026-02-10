@@ -5,18 +5,20 @@ const cors = require('cors');
 const app = express();
 app.use(cors());
 
+// သင်နောက်ဆုံးပေးထားတဲ့ API Key
 const API_KEY = '4c9add6d3582492aacdec6bd646ff229'; 
 
-// 1. MATCHES ROUTE (Updated logic to match football-data.org structure)
 app.get('/api/fixtures/date/:date', async (req, res) => {
     try {
         const { date } = req.params;
+        console.log(`Fetching matches for: ${date}`);
+
         const response = await axios.get(`https://api.football-data.org/v4/matches?dateFrom=${date}&dateTo=${date}`, {
             headers: { 'X-Auth-Token': API_KEY },
-            timeout: 60000
+            timeout: 60000 
         });
 
-        // Frontend logic နဲ့ ကိုက်အောင် data structure ကို ပြန်ညှိပေးထားပါတယ်
+        // Frontend ကုဒ် (script.js) က တောင်းတဲ့ format အတိုင်း ဒီမှာ ပြောင်းပေးလိုက်ပါတယ်
         const matches = (response.data.matches || []).map(m => ({
             tournament: { name: m.competition.name },
             homeTeam: { name: m.homeTeam.shortName || m.homeTeam.name },
@@ -27,14 +29,14 @@ app.get('/api/fixtures/date/:date', async (req, res) => {
             startTimestamp: Math.floor(new Date(m.utcDate).getTime() / 1000)
         }));
 
-        res.json(matches);
+        res.status(200).json(matches);
     } catch (error) {
         console.error("API Error:", error.message);
         res.status(500).json([]);
     }
 });
 
-// 2. STANDINGS ROUTE (Added for Table tab)
+// Standings နဲ့ တခြား Route တွေအတွက်
 app.get('/api/standings/:league', async (req, res) => {
     try {
         const { league } = req.params;
@@ -49,13 +51,10 @@ app.get('/api/standings/:league', async (req, res) => {
             points: row.points
         }));
         res.json(table);
-    } catch (error) {
-        res.status(500).json([]);
-    }
+    } catch (error) { res.status(500).json([]); }
 });
 
-// 3. HIGHLIGHTS (Dummy for now to avoid crash)
 app.get('/api/highlights', (req, res) => res.json([]));
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`Server is running on port ${PORT}`));

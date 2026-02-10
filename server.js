@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 // ပုံ image_aea6dc.png ထဲမှ API Key အမှန်ကို သေချာထည့်ထားသည်
-const API_KEY = 'c8c972ee26be439581c583f3d2d5f9cd';
+const API_KEY = '4c9add6d3582492aacdec6bd646ff229';
 const BASE_URL = 'https://api.football-data.org/v4';
 
 const footballApi = axios.create({

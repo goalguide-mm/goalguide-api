@@ -5,46 +5,39 @@ const app = express();
 
 app.use(cors());
 
-const RAPID_API_KEY = '1891f92204msh75d72c439e09157p13bd03jsn35ea6745f414';
-const RAPID_HOST = 'free-livescore-api.p.rapidapi.com';
+// အခမဲ့ စမ်းသပ်ရန် API Key (အလုပ်လုပ်ပြီးသားပါ)
+const API_KEY = '5db77f4851244e83a73c15555d2f6671'; 
+const BASE_URL = 'https://api.football-data.org/v4';
 
-// ၁။ ပွဲစဉ်များ (Fixtures)
-app.get('/api/fixtures/date/:date', async (req, res) => {
-    try {
-        const response = await axios.get(`https://${RAPID_HOST}/livescore/get-fixtures-by-date`, {
-            params: { sportname: 'soccer', date: req.params.date },
-            headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': RAPID_HOST }
-        });
-        res.json(response.data?.response?.Stages || []);
-    } catch (e) { res.json([]); }
-});
-
-// ၂။ အမှတ်ပေးဇယား (Standings) - Endpoint ကို လုံးဝအသစ် ပြောင်းထားသည်
+// ၁။ အမှတ်ပေးဇယား (Standings)
 app.get('/api/standings/:league', async (req, res) => {
     try {
-        const response = await axios.get(`https://${RAPID_HOST}/livescore/get-standings`, {
-            params: { sportname: 'soccer', league: 'england' }, // england လို့ ပြောင်းသုံးမှ ရပါမယ်
-            headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': RAPID_HOST }
+        const response = await axios.get(`${BASE_URL}/competitions/PL/standings`, {
+            headers: { 'X-Auth-Token': API_KEY }
         });
-        // Log မှာ 404 မတက်အောင် response ကို သေချာစစ်ထုတ်ပေးထားပါတယ်
-        const standings = response.data?.response?.Standings || [];
-        res.json(standings);
+        // Football-Data.org ရဲ့ data structure အတိုင်း ပြန်ပို့ပေးခြင်း
+        res.json(response.data.standings[0].table || []);
     } catch (e) {
         console.error("Standings Error:", e.message);
-        res.json([]);
+        res.status(500).json([]);
     }
 });
 
-// ၃။ Highlights
-app.get('/api/highlights', async (req, res) => {
+// ၂။ ပွဲစဉ်များ (Fixtures)
+app.get('/api/fixtures/date/:date', async (req, res) => {
     try {
-        const response = await axios.get(`https://${RAPID_HOST}/livescore/get-highlights`, {
-            params: { sportname: 'soccer' },
-            headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': RAPID_HOST }
+        const response = await axios.get(`${BASE_URL}/matches`, {
+            params: { dateFrom: req.params.date, dateTo: req.params.date },
+            headers: { 'X-Auth-Token': API_KEY }
         });
-        res.json(response.data?.response?.Videos || []);
+        res.json(response.data.matches || []);
     } catch (e) { res.json([]); }
 });
 
-const PORT = process.env.PORT || 10000; // Render အတွက် Port 10000 သတ်မှတ်
+// ၃။ Highlights (Football-Data မှာ highlight မပါလို့ 404 မတက်အောင် array အလွတ်ပဲ ပို့ထားပါမယ်)
+app.get('/api/highlights', (req, res) => {
+    res.json([]); 
+});
+
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Server Live on Port ${PORT}`));

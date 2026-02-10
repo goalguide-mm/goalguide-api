@@ -1,66 +1,50 @@
 const express = require('express');
 const cors = require('cors');
-const fetch = require('node-fetch');
+const axios = require('axios');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000; // Render က ပေးတဲ့ Port ကို သုံးဖို့
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// API Key - သင့်ရဲ့ Token ကို ဒီမှာ အမှန်ထည့်ပေးပါ
-const API_KEY = 'c8c972ee6b784a92963158c35398696b'; 
+// အောက်က Key ကို ပုံထဲကအတိုင်း အမှန်ပြန်ထည့်ထားပါတယ်
+const API_KEY = 'c8c972ee26be439581c583f3d2d5f9cd';
 const BASE_URL = 'https://api.football-data.org/v4';
 
-// 1. Fixtures Endpoint (ပွဲစဉ်များ)
+const footballApi = axios.create({
+    baseURL: BASE_URL,
+    headers: { 'X-Auth-Token': API_KEY },
+    timeout: 30000 // စက္ကန့် ၃၀ အထိ စောင့်ခိုင်းမယ် (Render free tier အတွက် ပိုကောင်းပါတယ်)
+});
+
+// Matches/Fixtures Endpoint
 app.get('/api/fixtures', async (req, res) => {
-    // 20 Seconds Timeout သတ်မှတ်ခြင်း
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000);
-
     try {
-        const response = await fetch(`${BASE_URL}/matches`, {
-            headers: { 'X-Auth-Token': API_KEY },
-            signal: controller.signal
-        });
-
-        if (!response.ok) {
-            throw new Error(`API returned ${response.status}`);
-        }
-
-        const data = await response.json();
-        res.json(data.matches || []);
+        const response = await footballApi.get('/matches');
+        res.json(response.data.matches || []);
     } catch (error) {
         console.error('Fixture API Error:', error.message);
-        // Error ဖြစ်ရင် Empty Array ပေးလိုက်မှ Front-end မှာ "No matches" ပဲပြပြီး Error မတက်မှာပါ
-        res.status(500).json({ error: "Data fetch timeout or error", matches: [] });
-    } finally {
-        clearTimeout(timeout);
+        res.status(500).json({ error: "Server error", matches: [] });
     }
 });
 
-// 2. Standings Endpoint (ဇယားများ)
+// Standings Endpoint
 app.get('/api/standings/:leagueCode', async (req, res) => {
-    const { leagueCode } = req.params;
     try {
-        const response = await fetch(`${BASE_URL}/competitions/${leagueCode}/standings`, {
-            headers: { 'X-Auth-Token': API_KEY }
-        });
-        const data = await response.json();
-        res.json(data);
+        const response = await footballApi.get(`/competitions/${req.params.leagueCode}/standings`);
+        res.json(response.data);
     } catch (error) {
+        console.error('Standings API Error:', error.message);
         res.status(500).json({ error: error.message });
     }
 });
 
-// 3. Highlights (အကယ်၍ တခြား API သုံးထားရင် ဒီမှာ ထည့်ပေးပါ)
+// Highlights Placeholder (Error မတက်အောင်)
 app.get('/api/highlights', (req, res) => {
-    // လက်ရှိ 404 ဖြစ်နေတာကို ဖြေရှင်းရန် နမူနာ data
     res.json({ message: "Highlights coming soon", data: [] });
 });
 
-// Server Start
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });

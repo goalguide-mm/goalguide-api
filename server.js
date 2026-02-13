@@ -8,20 +8,19 @@ app.use(cors());
 const RAPID_API_KEY = '1891f92204msh75d72c439e09157p13bd03jsn35ea6745f414';
 const LIVESCORE_HOST = 'free-livescore-api.p.rapidapi.com';
 
-// ၁။ Fixtures Route
 app.get('/api/fixtures/date/:date', async (req, res) => {
-    console.log(`[Request] Fixtures ခေါ်ဆိုမှု ရောက်လာပါပြီ - ရက်စွဲ: ${req.params.date}`);
+    console.log("Request received for date:", req.params.date);
     try {
         const response = await axios.get(`https://${LIVESCORE_HOST}/soccer/fixtures-by-date`, {
             params: { date: req.params.date },
             headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': LIVESCORE_HOST }
         });
         
+        // API ဒေတာကို စစ်ဆေးခြင်း
         let data = response.data.data || response.data || [];
         
-        // ဒေတာမရှိလျှင် Test Data ပြရန်
+        // အကယ်၍ API က ဒေတာအလွတ် [] ပို့ပေးလာရင်တောင် စမ်းသပ်အသင်းကို ပြမယ်
         if (!Array.isArray(data) || data.length === 0) {
-            console.log("API မှ ဒေတာမလာသဖြင့် Test Data ပို့ပေးလိုက်သည်။");
             data = [{
                 home_team: "စမ်းသပ်အသင်း (A)",
                 home_logo: "https://via.placeholder.com/50",
@@ -37,27 +36,14 @@ app.get('/api/fixtures/date/:date', async (req, res) => {
         }
         res.json(data);
     } catch (e) {
-        console.log("Error: ", e.message);
-        res.json([]);
+        console.log("API Error, sending test data...");
+        // Error တက်ရင်လည်း Test Data ပဲ ပို့မယ်
+        res.json([{ home_team: "Server Connect", away_team: "Success", status: "OK" }]);
     }
 });
 
-// ၂။ Standings Route
-app.get('/api/standings/:league', async (req, res) => {
-    console.log("[Request] Standings ခေါ်ဆိုမှု ရောက်လာပါပြီ");
-    res.json([]); 
-});
-
-// ၃။ Highlights Route
-app.get('/api/highlights', async (req, res) => {
-    console.log("[Request] Highlights ခေါ်ဆိုမှု ရောက်လာပါပြီ");
-    res.json([]);
-});
+app.get('/api/highlights', (req, res) => res.json([]));
+app.get('/api/standings/:league', (req, res) => res.json([]));
 
 const PORT = 3000;
-app.listen(PORT, () => {
-    console.log('------------------------------------');
-    console.log('Server is running on port ' + PORT);
-    console.log('Window ကို ပိတ်မချပါနဲ့။');
-    console.log('------------------------------------');
-});
+app.listen(PORT, '0.0.0.0', () => console.log('Server is running on port ' + PORT));

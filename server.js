@@ -7,13 +7,11 @@ app.use(cors());
 
 const WORKER_URL = "https://rapid-cell-5054.pmk818299.workers.dev";
 
-// Server အလုပ်လုပ်ကြောင်း အရင်စစ်ဖို့ Root path
-app.get('/', (req, res) => {
-    res.send("Backend is Live!");
-});
+// Root path စစ်ရန်
+app.get('/', (req, res) => res.send("Backend is Live!"));
 
-// Matches ယူမယ့် path
-app.get('/matches', async (req, res) => {
+// သင့် index.html နဲ့ ကိုက်အောင် /api/matches လို့ ပြန်ပေးထားတယ်
+app.get('/api/matches', async (req, res) => {
     try {
         const response = await axios.get(WORKER_URL);
         res.json(response.data);
@@ -22,8 +20,8 @@ app.get('/matches', async (req, res) => {
     }
 });
 
-// Standings ယူမယ့် path
-app.get('/standings', async (req, res) => {
+// Standings အတွက် (leagueSlug ပါရင်လည်း လက်ခံအောင်လုပ်ပေးထားတယ်)
+app.get('/api/standings/:league?', async (req, res) => {
     try {
         const response = await axios.get(WORKER_URL);
         res.json(response.data);
@@ -33,6 +31,4 @@ app.get('/standings', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

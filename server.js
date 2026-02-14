@@ -7,29 +7,27 @@ app.use(cors());
 
 const WORKER_URL = "https://rapid-cell-5054.pmk818299.workers.dev";
 
-// Root Route (Server အလုပ်လုပ်မလုပ် စစ်ရန်)
+// Server အလုပ်လုပ်ကြောင်း အရင်စစ်ဖို့ Root path
 app.get('/', (req, res) => {
-    res.send("Backend is running perfectly!");
+    res.send("Backend is Live!");
 });
 
-// Matches Route
+// Matches ယူမယ့် path
 app.get('/matches', async (req, res) => {
     try {
         const response = await axios.get(WORKER_URL);
         res.json(response.data);
     } catch (error) {
-        console.error("Error fetching matches:", error.message);
         res.status(500).json({ error: "Socolive Error" });
     }
 });
 
-// Standings Route
+// Standings ယူမယ့် path
 app.get('/standings', async (req, res) => {
     try {
         const response = await axios.get(WORKER_URL);
         res.json(response.data);
     } catch (error) {
-        console.error("Error fetching standings:", error.message);
         res.status(500).json({ error: "Socolive Error" });
     }
 });

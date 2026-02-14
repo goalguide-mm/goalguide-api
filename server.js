@@ -1,59 +1,33 @@
 const express = require('express');
 const axios = require('axios');
-const cheerio = require('cheerio');
 const cors = require('cors');
 const app = express();
 
 app.use(cors());
 
-// RapidAPI Config
-const RAPID_API_KEY = '1891f92204msh75d72c439e09157p13bd03jsn35ea6745f414';
-const LIVESCORE_HOST = 'free-livescore-api.p.rapidapi.com';
+// MATCHES & STANDINGS အကုန်လုံးကို Socolive (Worker) ဆီကနေပဲ ယူမယ့်အပိုင်း
+const WORKER_URL = "https://rapid-cell-5054.pmk818299.workers.dev";
 
-// 1. Fixtures Route (TheSportsDB or RapidAPI)
-app.get('/api/fixtures/date/:date', async (req, res) => {
+app.get('/api/matches', async (req, res) => {
     try {
-        const response = await axios.get(`https://${LIVESCORE_HOST}/soccer/fixtures-by-date`, {
-            params: { date: req.params.date },
-            headers: { 'x-rapidapi-key': RAPID_API_KEY, 'x-rapidapi-host': LIVESCORE_HOST }
-        });
-        res.json(response.data.data || []);
-    } catch (e) {
-        res.json([{ home_team: "API Error", away_team: "Offline", status: "FT" }]);
+        const response = await axios.get(WORKER_URL);
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ error: "Socolive Error" });
     }
 });
 
-// 2. Socolive Standings Scraper (အမှတ်ပေးဇယား)
-app.get('/api/standings/:league', async (req, res) => {
+app.get('/api/standings', async (req, res) => {
     try {
-        const league = req.params.league; // ဥပမာ - premier-league
-        const response = await axios.get(`https://socolive.org/standings/${league}`, {
-            headers: { 'User-Agent': 'Mozilla/5.0' }
-        });
-        const $ = cheerio.load(response.data);
-        const standings = [];
-
-        $('.table-row').each((i, el) => {
-            standings.push({
-                rank: $(el).find('.rank').text().trim(),
-                team: { 
-                    name: $(el).find('.team-name').text().trim(),
-                    logo: $(el).find('img').attr('src')
-                },
-                played: $(el).find('.played').text().trim(),
-                points: $(el).find('.points').text().trim()
-            });
-        });
-        res.json(standings);
-    } catch (e) {
-        res.status(500).json({ error: "Failed to fetch standings from Socolive" });
+        // Standings အတွက်လည်း Socolive Worker ကိုပဲ သုံးမယ်ဆိုရင်
+        const response = await axios.get(WORKER_URL);
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ error: "Socolive Error" });
     }
 });
-
-// 3. Highlights (RapidAPI or Static)
-app.get('/api/highlights', (req, res) => res.json([]));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
